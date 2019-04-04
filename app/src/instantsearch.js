@@ -20,7 +20,8 @@ class InstantSearch {
       paginationSelector,
       selector
     },
-    subdomain
+    subdomain,
+    searchCompleteCallback
   }) {
     if (!enabled) return;
 
@@ -61,6 +62,8 @@ class InstantSearch {
     });
 
     this.instantsearch.client.addAlgoliaAgent('Zendesk Integration (__VERSION__)');
+
+    this.searchCompleteCallback = searchCompleteCallback;
   }
 
   render({
@@ -83,8 +86,9 @@ class InstantSearch {
     poweredBy,
     responsive,
     subdomain,
+    searchCompleteCallback,
     templates,
-    translations
+    translations,
   }) {
     if (!enabled) return;
 
@@ -210,6 +214,12 @@ class InstantSearch {
         }
       })
     );
+
+    this.instantsearch.addWidget({
+      render: function (options) {
+        searchCompleteCallback(options.results.query, options.results.nbHits);
+      }
+    });
 
     let firstRender = true;
     this.instantsearch.on('render', () => {

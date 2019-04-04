@@ -30,7 +30,8 @@ class Autocomplete {
       inputSelector
     },
     indexPrefix,
-    subdomain
+    subdomain,
+    searchCompleteCallback
   }) {
     if (!enabled) return;
 
@@ -39,6 +40,7 @@ class Autocomplete {
     this.client = algoliasearch(applicationId, apiKey);
     this.client.addAlgoliaAgent('Zendesk Integration (__VERSION__)');
     this.index = this.client.initIndex(`${indexPrefix}${subdomain}_articles`);
+    this.searchCompleteCallback = searchCompleteCallback;
   }
 
   render({
@@ -132,7 +134,10 @@ class Autocomplete {
   _source(params, locale) {
     return (query, callback) => {
       this.index.search({...params, query, optionalWords: getOptionalWords(query, locale)})
-        .then((content) => { callback(this._reorderedHits(content.hits)); });
+        .then((content) => {
+          callback(this._reorderedHits(content.hits));
+          this.searchCompleteCallback(query, content.hits ? content.hits.length : 0);
+        });
     };
   }
 
