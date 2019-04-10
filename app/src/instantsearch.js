@@ -1,5 +1,7 @@
 import instantsearch from 'instantsearch.js';
 
+import debounce from './debounce.js';
+
 import addCSS from './addCSS.js';
 import removeCSS from './removeCSS.js';
 
@@ -50,7 +52,7 @@ class InstantSearch {
         highlightPostTag: '</span>',
         snippetEllipsisText: '...'
       },
-      searchFunction: ({search}) => {
+      searchFunction: debounce(({search}) => {
         let helper = this.instantsearch.helper;
         const query = helper.state.query;
         const optionalWords = getOptionalWords(query, this.locale);
@@ -58,7 +60,7 @@ class InstantSearch {
         helper.setQueryParameter('optionalWords', optionalWords);
         helper.setPage(page);
         search();
-      }
+      }, 400)
     });
 
     this.instantsearch.client.addAlgoliaAgent('Zendesk Integration (__VERSION__)');

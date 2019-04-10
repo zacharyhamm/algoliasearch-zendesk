@@ -1,6 +1,7 @@
 // Small hack to remove verticalAlign on the input
 // Makes IE11 fail though
 import _ from 'autocomplete.js/src/common/utils.js';
+import debounce from './debounce.js';
 if (!_.isMsie()) {
   const css = require('autocomplete.js/src/autocomplete/css.js');
   delete css.input.verticalAlign;
@@ -132,13 +133,13 @@ class Autocomplete {
   }
 
   _source(params, locale) {
-    return (query, callback) => {
+    return debounce((query, callback) => {
       this.index.search({...params, query, optionalWords: getOptionalWords(query, locale)})
         .then((content) => {
           callback(this._reorderedHits(content.hits));
           this.searchCompleteCallback(query, content.hits ? content.hits.length : 0);
         });
-    };
+    }, 400);
   }
 
   _reorderedHits(hits) {
