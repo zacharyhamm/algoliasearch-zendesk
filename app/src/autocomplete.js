@@ -139,7 +139,7 @@ class Autocomplete {
           callback(this._reorderedHits(content.hits));
           this.searchCompleteCallback(query, content.hits ? content.hits.length : 0);
         });
-    }, 400);
+    }, 700);
   }
 
   _reorderedHits(hits) {

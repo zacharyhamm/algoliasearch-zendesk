@@ -60,7 +60,7 @@ class InstantSearch {
         helper.setQueryParameter('optionalWords', optionalWords);
         helper.setPage(page);
         search();
-      }, 400)
+      }, 700)
     });
 
     this.instantsearch.client.addAlgoliaAgent('Zendesk Integration (__VERSION__)');
