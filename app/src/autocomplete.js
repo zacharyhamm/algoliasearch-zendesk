@@ -32,7 +32,8 @@ class Autocomplete {
     },
     indexPrefix,
     subdomain,
-    searchCompleteCallback
+    searchCompleteCallback,
+    searchDebounceMs,
   }) {
     if (!enabled) return;
 
@@ -42,6 +43,7 @@ class Autocomplete {
     this.client.addAlgoliaAgent('Zendesk Integration (__VERSION__)');
     this.index = this.client.initIndex(`${indexPrefix}${subdomain}_articles`);
     this.searchCompleteCallback = searchCompleteCallback;
+    this._source = debounce(this._source, searchDebounceMs)
   }
 
   render({

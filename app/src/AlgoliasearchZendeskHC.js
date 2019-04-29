@@ -45,7 +45,8 @@ const optionsStructure = {required: true, type: 'Object', children: {
     instantsearch: {type: 'Object', value: {}}
   }},
   translations: {type: 'Object', value: {}},
-  searchCompleteCallback: {type: 'function', value: (q, h) => { console.log(q, h); }}
+  searchCompleteCallback: {type: 'function', value: (q, h) => { console.log(q, h); }},
+  searchDebounceMs: {type: 'number', value: 650}
 }};
 
 class AlgoliasearchZendeskHC {

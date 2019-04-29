@@ -23,7 +23,8 @@ class InstantSearch {
       selector
     },
     subdomain,
-    searchCompleteCallback
+    searchCompleteCallback,
+    searchDebounceMs,
   }) {
     if (!enabled) return;
 
@@ -35,6 +36,16 @@ class InstantSearch {
       instantsearchSelector: selector,
       paginationSelector
     });
+
+    const searchMagic = ({search}) => {
+      let helper = this.instantsearch.helper;
+      const query = helper.state.query;
+      const optionalWords = getOptionalWords(query, this.locale);
+      const page = helper.getPage();
+      helper.setQueryParameter('optionalWords', optionalWords);
+      helper.setPage(page);
+      search();
+    };
 
     this.instantsearch = instantsearch({
       appId: applicationId,
@@ -52,15 +63,7 @@ class InstantSearch {
         highlightPostTag: '</span>',
         snippetEllipsisText: '...'
       },
-      searchFunction: debounce(({search}) => {
-        let helper = this.instantsearch.helper;
-        const query = helper.state.query;
-        const optionalWords = getOptionalWords(query, this.locale);
-        const page = helper.getPage();
-        helper.setQueryParameter('optionalWords', optionalWords);
-        helper.setPage(page);
-        search();
-      }, 700)
+      searchFunction: debounce(searchMagic, searchDebounceMs),
     });
 
     this.instantsearch.client.addAlgoliaAgent('Zendesk Integration (__VERSION__)');
