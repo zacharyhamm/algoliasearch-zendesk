@@ -1,6 +1,7 @@
 // Small hack to remove verticalAlign on the input
 // Makes IE11 fail though
 import _ from 'autocomplete.js/src/common/utils.js';
+import debounce from './debounce.js';
 if (!_.isMsie()) {
   const css = require('autocomplete.js/src/autocomplete/css.js');
   delete css.input.verticalAlign;
@@ -30,7 +31,9 @@ class Autocomplete {
       inputSelector
     },
     indexPrefix,
-    subdomain
+    subdomain,
+    searchCompleteCallback,
+    searchDebounceMs,
   }) {
     if (!enabled) return;
 
@@ -39,6 +42,8 @@ class Autocomplete {
     this.client = algoliasearch(applicationId, apiKey);
     this.client.addAlgoliaAgent('Zendesk Integration (__VERSION__)');
     this.index = this.client.initIndex(`${indexPrefix}${subdomain}_articles`);
+    this.searchCompleteCallback = searchCompleteCallback;
+    this.searchDebounceMs = searchDebounceMs;
   }
 
   render({
@@ -130,10 +135,13 @@ class Autocomplete {
   }
 
   _source(params, locale) {
-    return (query, callback) => {
+    return debounce((query, callback) => {
       this.index.search({...params, query, optionalWords: getOptionalWords(query, locale)})
-        .then((content) => { callback(this._reorderedHits(content.hits)); });
-    };
+        .then((content) => {
+          callback(this._reorderedHits(content.hits));
+          this.searchCompleteCallback(query, content.hits ? content.hits.length : 0);
+        });
+    }, this.searchDebounceMs);
   }
 
   _reorderedHits(hits) {

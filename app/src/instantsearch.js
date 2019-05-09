@@ -1,5 +1,7 @@
 import instantsearch from 'instantsearch.js';
 
+import debounce from './debounce.js';
+
 import addCSS from './addCSS.js';
 import removeCSS from './removeCSS.js';
 
@@ -20,7 +22,9 @@ class InstantSearch {
       paginationSelector,
       selector
     },
-    subdomain
+    subdomain,
+    searchCompleteCallback,
+    searchDebounceMs,
   }) {
     if (!enabled) return;
 
@@ -32,6 +36,16 @@ class InstantSearch {
       instantsearchSelector: selector,
       paginationSelector
     });
+
+    const searchMagic = ({search}) => {
+      let helper = this.instantsearch.helper;
+      const query = helper.state.query;
+      const optionalWords = getOptionalWords(query, this.locale);
+      const page = helper.getPage();
+      helper.setQueryParameter('optionalWords', optionalWords);
+      helper.setPage(page);
+      search();
+    };
 
     this.instantsearch = instantsearch({
       appId: applicationId,
@@ -49,18 +63,12 @@ class InstantSearch {
         highlightPostTag: '</span>',
         snippetEllipsisText: '...'
       },
-      searchFunction: ({search}) => {
-        let helper = this.instantsearch.helper;
-        const query = helper.state.query;
-        const optionalWords = getOptionalWords(query, this.locale);
-        const page = helper.getPage();
-        helper.setQueryParameter('optionalWords', optionalWords);
-        helper.setPage(page);
-        search();
-      }
+      searchFunction: debounce(searchMagic, searchDebounceMs),
     });
 
     this.instantsearch.client.addAlgoliaAgent('Zendesk Integration (__VERSION__)');
+
+    this.searchCompleteCallback = searchCompleteCallback;
   }
 
   render({
@@ -83,8 +91,9 @@ class InstantSearch {
     poweredBy,
     responsive,
     subdomain,
+    searchCompleteCallback,
     templates,
-    translations
+    translations,
   }) {
     if (!enabled) return;
 
@@ -210,6 +219,12 @@ class InstantSearch {
         }
       })
     );
+
+    this.instantsearch.addWidget({
+      render: function (options) {
+        searchCompleteCallback(options.results.query, options.results.nbHits);
+      }
+    });
 
     let firstRender = true;
     this.instantsearch.on('render', () => {
