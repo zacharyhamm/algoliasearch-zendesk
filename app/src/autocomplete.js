@@ -43,7 +43,7 @@ class Autocomplete {
     this.client.addAlgoliaAgent('Zendesk Integration (__VERSION__)');
     this.index = this.client.initIndex(`${indexPrefix}${subdomain}_articles`);
     this.searchCompleteCallback = searchCompleteCallback;
-    this._source = debounce(this._source, searchDebounceMs)
+    this.searchDebounceMs = searchDebounceMs;
   }
 
   render({
@@ -141,7 +141,7 @@ class Autocomplete {
           callback(this._reorderedHits(content.hits));
           this.searchCompleteCallback(query, content.hits ? content.hits.length : 0);
         });
-    }, 700);
+    }, this.searchDebounceMs);
   }
 
   _reorderedHits(hits) {
